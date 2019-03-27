@@ -1,8 +1,8 @@
 #include <Adafruit_NeoPixel.h>
 #include "Colors.h"
 
-#define PIN_LED_DATA 3
-
+#define PIN_LED_DATA 8
+#define PIN_SENSOR_INPUT 2
 
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
@@ -11,7 +11,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN_LED_DATA, NEO_GRB + NEO_KHZ80
 #define GREEN_MAX 100
 #define BLUE_MAX 100
 
-int int_hue = 899;
+volatile int int_hue = 899;
 
 struct hsl_values
 {
@@ -66,11 +66,7 @@ struct rgb_values hsl2RGB(struct hsl_values hsl_val)
   rgb.red = (int)(r * RED_MAX);
   rgb.green = (int)(g * GREEN_MAX);
   rgb.blue = (int)(b * BLUE_MAX);
-  Serial.print(rgb.red);
-  Serial.print(',');
-  Serial.print(rgb.green);
-  Serial.print(',');
-  Serial.println(rgb.blue);
+
   return rgb;
 }
 
@@ -97,14 +93,13 @@ void setup()
   Serial.begin(115200);
   strip.begin();
   strip.show();
+  
+
 
 }
 
-
-
-void loop()
+void animate_led()
 {
-
   uint8_t h, s, l;
   hsl_values hsl;
   for (int i = 0; i < sizeof(colors) / 3; ++i)
@@ -124,13 +119,18 @@ void loop()
     {
       strip.setPixelColor(j, rgb.red, rgb.blue, rgb.green);
     }
-
     strip.show();
-
     delay(33);
 
 
 
   }
+
+}
+
+void loop()
+{
+
+  animate_led();
 
 }
