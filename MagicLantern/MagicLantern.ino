@@ -8,41 +8,52 @@
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
 //Tweak these max color values for white balance (0-255)
 #define RED_MAX 255
-#define GREEN_MAX 255
-#define BLUE_MAX 255
+#define GREEN_MAX 100
+#define BLUE_MAX 100
 
+int int_hue = 899;
 
-
-void hslToRgb(float h, float s, float l, uint8_t * rgbOut)
+struct hsl_values
 {
-  //Read hue offset from potentiometer
-  int huePotValue = 1023;
-  if (Serial.available() >> 0)
-  {
-     int huePotValue = Serial.parseInt();
-    
-  }
- 
-  float huePotPercent = (float)huePotValue / 1023;
+  float h, s, l;
+};
 
-  //Offset hue value
-  h += huePotPercent;
-  h -= (int)h;
+struct rgb_values
+{
+  int red, blue, green;
+};
+
+struct rgb_values hsl2RGB(struct hsl_val hsl_val);
+struct rgb_values hsl2RGB(struct hsl_values hsl_val)
+{
+  // Hue offset
+  if (Serial.available() > 0)
+  {
+    int_hue = Serial.parseInt();
+  }
+
+  float huePotPercent = (float)int_hue / 1023;
+
+  // Add the offset
+  hsl_val.h += huePotPercent;
+  hsl_val.h -= (int)hsl_val.h;
 
   //Convert HSL to RGB
   float r, g, b;
 
-  if (s == 0.0f)
+
+  if (hsl_val.s == 0.0f)
   {
-    r = g = b = l; // achromatic
+    r = g = b = hsl_val.l; // achromatic
   }
   else
   {
-    float q = (l < 0.5f) ? (l * (1 + s)) : (l + s - l * s);
-    float p = 2 * l - q;
-    r = hueToRgb(p, q, h + 1.0f / 3.0f);
-    g = hueToRgb(p, q, h);
-    b = hueToRgb(p, q, h - 1.0f / 3.0f);
+    float q = (hsl_val.l < 0.5f) ? (hsl_val.l * (1 + hsl_val.s)) : (hsl_val.l + hsl_val.s - hsl_val.l * hsl_val.s);
+    float p = 2 * hsl_val.l - q;
+    r = hueToRgb(p, q, hsl_val.h + 1.0f / 3.0f);
+    g = hueToRgb(p, q, hsl_val.h);
+    b = hueToRgb(p, q, hsl_val.h - 1.0f / 3.0f);
+
   }
 
   //Apply exponential curve to RGB values for better LED response
@@ -50,10 +61,17 @@ void hslToRgb(float h, float s, float l, uint8_t * rgbOut)
   g = g * g * g;
   b = b * b * b;
 
+  rgb_values rgb;
   //Apply white balance scales
-  rgbOut[0] = (int)(r * RED_MAX);
-  rgbOut[1] = (int)(g * GREEN_MAX);
-  rgbOut[2] = (int)(b * BLUE_MAX);
+  rgb.red = (int)(r * RED_MAX);
+  rgb.green = (int)(g * GREEN_MAX);
+  rgb.blue = (int)(b * BLUE_MAX);
+  Serial.print(rgb.red);
+  Serial.print(',');
+  Serial.print(rgb.green);
+  Serial.print(',');
+  Serial.println(rgb.blue);
+  return rgb;
 }
 
 float hueToRgb(float p, float q, float t)
@@ -69,59 +87,50 @@ float hueToRgb(float p, float q, float t)
   if (t < 2.0f / 3.0f)
     return p + (q - p) * (2.0f / 3.0f - t) * 6.0f;
   return p;
+
 }
+
+
 
 void setup()
 {
-    Serial.begin(115200);
-    strip.begin();
-    strip.show(); // Initialize all pixels to 'off'
+  Serial.begin(115200);
+  strip.begin();
+  strip.show();
 
 }
-
-struct light_values
-{
-  uint8_t red, green blue;
-  float hf, sf, lf;
-};
 
 
 
 void loop()
 {
-  light_values values;
-  for (int i=0; i < sizeof(colors) / 3; ++i)
+
+  uint8_t h, s, l;
+  hsl_values hsl;
+  for (int i = 0; i < sizeof(colors) / 3; ++i)
   {
-    values.hf = (float)colors[(i*3)] / 255;
-    values.sf = (float)colors[(i*3)+1] / 255;
-    values.lf = (float)colors[(i*3)+2] / 255;
     //Read the the next color from progmem
-	  //h = pgm_read_byte_near(colors + (i * 3));
-	  //s = pgm_read_byte_near(colors + (i * 3) + 1);
-	  //l = pgm_read_byte_near(colors + (i * 3) + 2);
-    //hf = (float)h / 255;
-	  //sf = (float)s / 255;
-	  //lf = (float)l / 255;
-  }
-  
+		h = pgm_read_byte_near(colors + (i * 3));
+		s = pgm_read_byte_near(colors + (i * 3) + 1);
+		l = pgm_read_byte_near(colors + (i * 3) + 2);
+
+    hsl.h = (float)h / 255;
+    hsl.s = (float)s / 255;
+    hsl.l = (float)l / 255;
+    rgb_values rgb;
+    rgb = hsl2RGB(hsl);
+
+    for (int j = 0; j <= 8; j++)
+    {
+      strip.setPixelColor(j, rgb.red, rgb.blue, rgb.green);
+    }
+
+    strip.show();
+
+    delay(33);
 
 
-    //Convert HSL color to RGB color
-	hslToRgb(hf, sf, lf, rgb);
-  Serial.println(rgb[0]);
-  Serial.println(rgb[1]);
-  Serial.println(rgb[2]);
-  for (int i = 0; i <= 8; i++)
-  {
-     strip.setPixelColor(i, rgb[0], rgb[1], rgb[2]);
+
   }
-  strip.show();
-    
-  }
-   
-	//Delay 33 ms for roughly 30FPS
-	delay(33);
 
 }
-
-

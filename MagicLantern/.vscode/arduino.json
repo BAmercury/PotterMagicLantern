@@ -1,5 +1,6 @@
 {
     "board": "arduino:avr:uno",
     "programmer": "AVR ISP",
-    "sketch": "MagicLantern.ino"
+    "sketch": "MagicLantern.ino",
+    "port": "COM12"
 }
