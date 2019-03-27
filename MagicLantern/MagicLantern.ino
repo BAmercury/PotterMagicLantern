@@ -7,6 +7,34 @@
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
 
+volatile uint8_t touch_count = 0;
+volatile bool animation = false;
+// Animations:
+// 0: Fire
+// 1: RainbowCycle
+// 2: theaterChaseRainbow 
+volatile int desired_animation = 0; 
+
+
+void input_state_change()
+{
+  if (touch_count < 2)
+  {
+    animation = false;
+    digitalWrite(LED_BUILTIN, LOW);
+    touch_count++;
+  }
+  if (touch_count == 2)
+  {
+    animation = true;
+    digitalWrite(LED_BUILTIN, HIGH);
+    touch_count = 0;
+
+  }
+
+ 
+
+}
 
 
 
@@ -15,23 +43,45 @@ void setup()
   Serial.begin(115200);
   strip.begin();
   strip.show();
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(PIN_SENSOR_INPUT, INPUT);
+  attachInterrupt(digitalPinToInterrupt(PIN_SENSOR_INPUT), input_state_change, RISING);
 }
 
 
 
 void loop()
 {
-  //animate_led();
-    // Some example procedures showing how to display to the pixels:
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  colorWipe(strip.Color(0, 255, 0), 50); // Green
-  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-  // Send a theater pixel chase in...
-  theaterChase(strip.Color(127, 127, 127), 50); // White
-  theaterChase(strip.Color(127,   0,   0), 50); // Red
-  theaterChase(strip.Color(  0,   0, 127), 50); // Blue
+  // Disable interrupt so we can check boolean
+  noInterrupts();
+  // Quickly copy the control boolean
+  bool animate = animation;
 
-  rainbow(20);
-  rainbowCycle(20);
-  theaterChaseRainbow(50);
+  if (animate)
+  {
+    switch (desired_animation)
+    {
+      case 0:
+        animate_led();
+      case 1:
+        rainbowCycle(10);
+      case 2:
+        theaterChaseRainbow(10);
+    }
+  }
+  else
+  {
+    for (int j = 0; j <=8; j++)
+    {
+      strip.setPixelColor(j, 0,0,0);
+    }
+
+    strip.show();
+    
+    
+  }
+  // Start the interrupt again
+  interrupts();
+  
+
 }

@@ -1,39 +1,15 @@
 // Adafruit Neopixel Demo Code
 
 // Usage:
-// colorWipe(strip.Color(255, 0, 0), 50); // Red
-// colorWipe(strip.Color(0, 255, 0), 50); // Green
-// colorWipe(strip.Color(0, 0, 255), 50); // Blue
 // // Send a theater pixel chase in...
 // theaterChase(strip.Color(127, 127, 127), 50); // White
 // theaterChase(strip.Color(127,   0,   0), 50); // Red
 // theaterChase(strip.Color(  0,   0, 127), 50); // Blue
 
-// rainbow(20);
 // rainbowCycle(20);
 // theaterChaseRainbow(50);
 
 
-// Fill the dots one after the other with a color
-void colorWipe(uint32_t c, uint8_t wait) {
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, c);
-      strip.show();
-      delay(wait);
-  }
-}
-
-void rainbow(uint8_t wait) {
-  uint16_t i, j;
-
-  for(j=0; j<256; j++) {
-    for(i=0; i<strip.numPixels(); i++) {
-      strip.setPixelColor(i, Wheel((i+j) & 255));
-    }
-    strip.show();
-    delay(wait);
-  }
-}
 
 // Slightly different, this makes the rainbow equally distributed throughout
 void rainbowCycle(uint8_t wait) {
