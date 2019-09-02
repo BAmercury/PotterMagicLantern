@@ -7,7 +7,7 @@
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
 
-volatile uint8_t touch_count = 0;
+volatile int touch_count = 0;
 volatile bool animation = false;
 // Animations:
 // 0: Fire
@@ -18,13 +18,16 @@ volatile int desired_animation = 0;
 
 void input_state_change()
 {
+  touch_count++;
+
+  // Keep LED off if no two touch
   if (touch_count < 2)
   {
     animation = false;
     digitalWrite(LED_BUILTIN, LOW);
-    touch_count++;
   }
-  if (touch_count == 2)
+  // Turns on LED
+  if (touch_count > 2)
   {
     animation = true;
     digitalWrite(LED_BUILTIN, HIGH);
@@ -52,6 +55,9 @@ void setup()
 
 void loop()
 {
+
+  // Check Serial Buffer
+
   // Disable interrupt so we can check boolean
   noInterrupts();
   // Quickly copy the control boolean
@@ -59,14 +65,18 @@ void loop()
 
   if (animate)
   {
+
     switch (desired_animation)
     {
       case 0:
         animate_led();
+        break;
       case 1:
         rainbowCycle(10);
+        break;
       case 2:
         theaterChaseRainbow(10);
+        break;
     }
   }
   else
