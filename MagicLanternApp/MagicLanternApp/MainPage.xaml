@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="MagicLanternApp.MainPage">
+
+    <StackLayout>
+        <!-- Place new controls here -->
+        <Label Text="Potter Magic Lantern" 
+           HorizontalOptions="Center"
+           VerticalOptions="CenterAndExpand" />
+
+        <Slider Minimum="0" 
+                Maximum="1023" 
+                x:Name="cntrl_slider"
+                
+                ValueChanged="Cntrl_slider_ValueChanged"/>
+        <Label Text="Change Hue Using Slider"
+               HorizontalOptions="Center"/>
+        <Button x:Name="cntrl_connect" 
+                Text="Connect" 
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Clicked="Cntrl_connect_Clicked"/>
+
+        <Button x:Name="cntrl_cast"
+                Text="Cast"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Clicked="Cntrl_cast_Clicked"/>
+
+        <Button x:Name="cntrl_animation_cycle"
+                Text="Cycle Animation"
+                HorizontalOptions="Center"
+                VerticalOptions="Start"
+                Clicked="Cntrl_animation_cycle_Clicked"/>
+    </StackLayout>
+
+</ContentPage>
+

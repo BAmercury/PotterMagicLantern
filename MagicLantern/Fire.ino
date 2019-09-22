@@ -102,7 +102,7 @@ void animate_led()
     rgb_values rgb;
     rgb = hsl2RGB(hsl);
 
-    for (int j = 0; j <= 8; j++)
+    for (int j = 0; j <= NUM_LED; j++)
     {
       strip.setPixelColor(j, rgb.red, rgb.blue, rgb.green);
     }

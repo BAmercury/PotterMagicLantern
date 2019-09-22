@@ -3,9 +3,10 @@
 
 #define PIN_LED_DATA 8
 #define PIN_SENSOR_INPUT 2
+#define NUM_LED 24
 
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LED, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
 
 volatile int touch_count = 0;
 volatile bool animation = false;
@@ -61,7 +62,7 @@ void loop()
   // Disable interrupt so we can check boolean
   noInterrupts();
   // Quickly copy the control boolean
-  bool animate = animation;
+  bool animate = true;
 
   if (animate)
   {
@@ -81,7 +82,7 @@ void loop()
   }
   else
   {
-    for (int j = 0; j <=8; j++)
+    for (int j = 0; j <=NUM_LED; j++)
     {
       strip.setPixelColor(j, 0,0,0);
     }
