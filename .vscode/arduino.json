@@ -1,6 +1,7 @@
 {
-    "board": "arduino:avr:uno",
+    "board": "esp8266:esp8266:generic",
     "programmer": "AVR ISP",
-    "sketch": "MagicLantern\\MagicLantern.ino",
-    "port": "COM12"
+    "sketch": "Adafruit_MQTT_Test/Adafruit_MQTT_Test.ino",
+    "port": "COM12",
+    "configuration": "xtal=80,vt=flash,exception=disabled,ssl=all,ResetMethod=ck,CrystalFreq=26,FlashFreq=40,FlashMode=dout,eesz=512K,led=2,sdk=nonosdk221,ip=lm2f,dbg=Disabled,lvl=None____,wipe=none,baud=115200"
 }
