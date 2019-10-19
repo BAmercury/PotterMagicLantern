@@ -260,3 +260,7 @@ paket-files/
 __pycache__/
 *.pyc
 Lantern.s#1
+
+
+
+Adafruit_MQTT_Test/Adafruit_MQTT_Test.ino
