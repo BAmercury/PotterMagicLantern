@@ -4,7 +4,8 @@
 #define BLUE_MAX 100
 
 
-// Hue offset, can be changed through Serial
+// Hue offset, can be changed through attached potentiometer
+// default is red
 volatile int int_hue = 899;
 
 
@@ -19,16 +20,18 @@ struct rgb_values
 };
 
 
-// Convert HSL to RGB, incorporate hue shift
+// Function to Convert HSL to RGB, incorporate hue shift
 struct rgb_values hsl2RGB(struct hsl_val hsl_val);
 struct rgb_values hsl2RGB(struct hsl_values hsl_val)
 {
-  // Hue offset
-  if (Serial.available() > 0)
-  {
-    int_hue = Serial.parseInt();
-  }
+  //  Get Hue offset from the potentiometer then run through MA filter
+  int_hue = analogRead(PIN_POT);
+  int_hue = analogRead(PIN_POT);
+  // Add new value then read the smoothed result
+  PotSensor.add(int_hue);
+  int_hue = PotSensor.get();
 
+  // Evan Kale: https://github.com/evankale
   float huePotPercent = (float)int_hue / 1023;
 
   // Add the offset
@@ -107,6 +110,7 @@ void animate_led()
       strip.setPixelColor(j, rgb.red, rgb.blue, rgb.green);
     }
     strip.show();
+    // Updates every 33 ms (Can use this to control framerate of animation)
     delay(33);
 
 

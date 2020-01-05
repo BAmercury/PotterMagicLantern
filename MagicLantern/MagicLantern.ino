@@ -1,8 +1,10 @@
 #include <Adafruit_NeoPixel.h>
 #include "Colors.h"
+#include <Smoothed.h>
 
 #define PIN_LED_DATA 8
 #define PIN_SENSOR_INPUT 2
+#define PIN_POT 1 // Analog input pin 1
 #define NUM_LED 24
 
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
@@ -15,6 +17,10 @@ volatile bool animation = false;
 // 1: RainbowCycle
 // 2: theaterChaseRainbow 
 volatile int desired_animation = 0; 
+
+// Potentiometer Sensor
+Smoothed <int> PotSensor;
+const int WINDOW_SIZE = 10; // Window size for MA filter running for the pot
 
 
 void input_state_change()
@@ -50,6 +56,9 @@ void setup()
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(PIN_SENSOR_INPUT, INPUT);
   attachInterrupt(digitalPinToInterrupt(PIN_SENSOR_INPUT), input_state_change, RISING);
+
+  // initialize the Pot Sensor
+  PotSensor.begin(SMOOTHED_AVERAGE, WINDOW_SIZE);
 }
 
 
@@ -62,6 +71,8 @@ void loop()
   // Disable interrupt so we can check boolean
   noInterrupts();
   // Quickly copy the control boolean
+  // bool animate = animation
+  // Ovverride for debugging
   bool animate = true;
 
   if (animate)
@@ -70,6 +81,7 @@ void loop()
     switch (desired_animation)
     {
       case 0:
+        // Runs fire animation
         animate_led();
         break;
       case 1:
