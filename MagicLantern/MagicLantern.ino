@@ -71,9 +71,9 @@ void loop()
   // Disable interrupt so we can check boolean
   noInterrupts();
   // Quickly copy the control boolean
-  // bool animate = animation
+  bool animate = animation;
   // Ovverride for debugging
-  bool animate = true;
+  //bool animate = true;
 
   if (animate)
   {

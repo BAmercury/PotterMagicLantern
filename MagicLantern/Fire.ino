@@ -6,7 +6,7 @@
 
 // Hue offset, can be changed through attached potentiometer
 // default is red
-volatile int int_hue = 899;
+int int_hue = 899;
 
 
 struct hsl_values
