@@ -8,7 +8,8 @@
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",
                 "C:\\Users\\brian\\Documents\\Arduino\\libraries\\**",
-                "C:/Users/brian/Documents/Arduino/libraries/Adafruit_MQTT_Library"
+                "C:/Users/brian/Documents/Arduino/libraries/Adafruit_MQTT_Library",
+                "C:\\Users\\brian\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.2\\**"
             ],
             "forcedInclude": [],
             "intelliSenseMode": "msvc-x64",

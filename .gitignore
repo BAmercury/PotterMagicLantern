@@ -264,3 +264,5 @@ Lantern.s#1
 
 
 Adafruit_MQTT_Test/Adafruit_MQTT_Test.ino
+
+Adafruit_IO/config.h
