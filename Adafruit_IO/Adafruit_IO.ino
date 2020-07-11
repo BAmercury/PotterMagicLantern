@@ -1,6 +1,17 @@
 /***************************************************  
-  Based on the example written by:
-  Written by Tony DiCola for Adafruit Industries.
+Potter Lamp ESP-01 Module Code
+Connects to Wifi and checks updates from Adafruit IO feed that is toggled using Google Assistant
+References the following definitions from a config.h header file:
+  WLAN_SSID
+  WLAN_PASS
+  AIO_SERVER
+  AIO_SERVERPORT
+  AIO_USERNAME
+  AIO_KEY
+
+  
+Referenced code from:
+  Tony DiCola for Adafruit Industries
  ****************************************************/
 #include <ESP8266WiFi.h>
 #include "Adafruit_MQTT.h"
@@ -25,35 +36,34 @@ Adafruit_MQTT_Subscribe spell_toggle = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNA
 
 
 
-/*************************** Sketch Code ************************************/
-
 // Bug workaround for Arduino 1.6.6, it seems to need a function declaration
 // for some reason (only affects ESP8266, likely an arduino-builder bug).
 void MQTT_connect();
 
-void setup() {
+void setup() 
+{
+
+  // Setup Serial
   Serial.begin(115200);
   delay(10);
 
-  Serial.println(F("Adafruit MQTT demo"));
+  // Setup Pins (GPIO2)
+  pinMode(2, OUTPUT);
 
+
+  // Connect to Wifi Access Point
+  Serial.println("Connecting to WIFI");
   // Connect to WiFi access point.
-  Serial.println(); Serial.println();
-  Serial.print("Connecting to ");
-  Serial.println(WLAN_SSID);
-
   WiFi.begin(WLAN_SSID, WLAN_PASS);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.print(".");
   }
-  Serial.println();
-
   Serial.println("WiFi connected");
   Serial.println("IP address: "); Serial.println(WiFi.localIP());
 
-  // Setup MQTT subscription for onoff feed.
-  mqtt.subscribe(&onoffbutton);
+  // Setup MQTT subscription for the lamp toggle feed
+  mqtt.subscribe(&spell_toggle);
+
 }
 
 uint32_t x=0;
@@ -64,34 +74,31 @@ void loop() {
   // function definition further below.
   MQTT_connect();
 
-  // this is our 'wait for incoming subscription packets' busy subloop
-  // try to spend your time here
-
+  // wait for incoming packets
   Adafruit_MQTT_Subscribe *subscription;
-  while ((subscription = mqtt.readSubscription(5000))) {
-    if (subscription == &onoffbutton) {
-      Serial.print(F("Got: "));
-      Serial.println((char *)onoffbutton.lastread);
+  while ((subscription = mqtt.readSubscription(5000))) 
+  {
+    if (subscription == &spell_toggle) 
+    {
+
+      Serial.println((char *)spell_toggle.lastread);
+      // Toggle LED depending on status of the packet
+      if ( !strcmp((char*) spell_toggle.lastread, "ON") )
+      {
+        // Set the GPIO2 Pin High
+        digitalWrite(2, HIGH);
+      }
+      else
+      {
+        digitalWrite(2, LOW);
+      }      
     }
   }
-
-  // Now we can publish stuff!
-  Serial.print(F("\nSending photocell val "));
-  Serial.print(x);
-  Serial.print("...");
-  if (! photocell.publish(x++)) {
-    Serial.println(F("Failed"));
-  } else {
-    Serial.println(F("OK!"));
-  }
-
   // ping the server to keep the mqtt connection alive
-  // NOT required if you are publishing once every KEEPALIVE seconds
-  /*
   if(! mqtt.ping()) {
     mqtt.disconnect();
   }
-  */
+
 }
 
 // Function to connect and reconnect as necessary to the MQTT server.
