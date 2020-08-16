@@ -1,15 +1,5 @@
 // Adafruit Neopixel Demo Code
 
-// Usage:
-// // Send a theater pixel chase in...
-// theaterChase(strip.Color(127, 127, 127), 50); // White
-// theaterChase(strip.Color(127,   0,   0), 50); // Red
-// theaterChase(strip.Color(  0,   0, 127), 50); // Blue
-
-// rainbowCycle(20);
-// theaterChaseRainbow(50);
-
-
 
 // Slightly different, this makes the rainbow equally distributed throughout
 void rainbowCycle(uint8_t wait) {
@@ -21,24 +11,6 @@ void rainbowCycle(uint8_t wait) {
     }
     strip.show();
     delay(wait);
-  }
-}
-
-//Theatre-style crawling lights.
-void theaterChase(uint32_t c, uint8_t wait) {
-  for (int j=0; j<10; j++) {  //do 10 cycles of chasing
-    for (int q=0; q < 3; q++) {
-      for (int i=0; i < strip.numPixels(); i=i+3) {
-        strip.setPixelColor(i+q, c);    //turn every third pixel on
-      }
-      strip.show();
-     
-      delay(wait);
-     
-      for (int i=0; i < strip.numPixels(); i=i+3) {
-        strip.setPixelColor(i+q, 0);        //turn every third pixel off
-      }
-    }
   }
 }
 
