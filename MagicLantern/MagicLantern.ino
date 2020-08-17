@@ -7,13 +7,18 @@
 #define INTERRUPT_PIN_SENSOR_INPUT 2 // piezo circuit digital output
 #define INTERRUPT_PIN_ESP_INPUT 3 // ESP32 digital output
 #define PIN_POT 1 // Analog input pin 1
-#define PIN_MISC_ANIMATE_ENABLE 2 // Analog input pin 2, enables other animations
 #define NUM_LED 24
 
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LED, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
 
-bool animate = true;
+unsigned long animate_prev_ms = 0;
+unsigned long main_loop_prev_ms = 0;
+unsigned long fire_interval = 33; // milliseconds
+unsigned long rainbow_interval = 10; // milliseconds
+unsigned long theater_interval = 50; // milliseconds
+unsigned long main_loop_interval = 10; // milliseconds
+
 
 // Animations:
 // 0: Fire
@@ -21,6 +26,9 @@ bool animate = true;
 // 2: theaterChaseRainbow 
 // 3: Wheel
 volatile int desired_animation = 0; 
+int desired_animation_cpy = 0;
+int prev_desired_animation = 0;
+bool animate = true;
 
 
 // Potentiometer Sensor
@@ -29,51 +37,48 @@ const int WINDOW_SIZE = 10; // Window size for MA filter running for the pot
 
 
 // Count amount of taps
-volatile int tap_count = 0;
+volatile int two_tap_count = 0;
+volatile int cycle_mode = 0;
 // If 2 taps received update this boolean
 volatile bool two_taps = false;
+bool two_taps_cpy = false;
 
 void sensor_tap_counter()
 {
-    tap_count++;
+    two_tap_count++;
     // If we received two taps, update the control boolean for the main loop
-    if (tap_count > 2)
+    if (two_tap_count > 2)
     {
         two_taps = true; // This boolean latches and does not get reset until augamenti is spoken
         // Reset tap counter
-        tap_count = 0;
+        two_tap_count = 0;
     }
 
-    // Update desired animation based on taps if otherAnimations are enabled
-    // also if twoTaps have already been received and the spell is spoken
-    analogRead(PIN_MISC_ANIMATE_ENABLE); // discard
-    int adc_val = analogRead(PIN_MISC_ANIMATE_ENABLE);
-    
-    // if we have already tapped twice and the animation is running
-    if (two_taps && adc_val >= 200)
+    // if we have already tapped twice assume the animation is running
+    if (two_taps)
     {
-        switch (tap_count)
+        if(++cycle_mode > 3) cycle_mode = 0; // Advance to next mode, wrap around after 3
+        switch (cycle_mode)
         {
             case 0:
-                desired_animation = 1; // RainbowCycle
+                desired_animation = 0; // Fire
                 break;
             case 1:
-                desired_animation = 2; // theaterChaseRainbow
+                desired_animation = 1; // Rainbow Cycle
                 break;
             case 2:
-                desired_animation = 3; // Wheel
+                desired_animation = 2; // Theater
                 break;
+            case 3:
+                desired_animation = 3; // Rainbow Solid
         }
-    }
-    else if(two_taps)
-    {
-        desired_animation = 0; // Fire
     }
     
 
 }
 
 volatile bool esp_state = false;
+bool esp_state_cpy = false;
 void esp_state_change()
 {
     // Flip the control boolean for every detected state change
@@ -102,76 +107,94 @@ void setup()
 void loop()
 {
 
-    // Check Serial Buffer
 
-    // Disable interrupt so we can check our booleans
-    noInterrupts();
-    // Quickly copy the control booleans
-    bool esp_state_cpy = esp_state;
-    bool two_taps_cpy = two_taps;
-    int desired_animation_cpy = desired_animation;
-    interrupts(); // Reenable interrupts
-
-    // Check boolean logic
-    // We want this to latch, so incease two_taps_cpy resets for any reason we can still run the animation
-    // if esp_state_cpy is false (Only happens if we speak aguamenti - the animation should turn off right away)
-
-    // let user know we recieved two taps and waiting for spell
-    if (two_taps_cpy && esp_state_cpy == false)
+    // Run main loop in a programmmable interval
+    // Checks status of control bools 
+    if ((unsigned long)(millis() - main_loop_prev_ms) >= main_loop_interval)
     {
-        digitalWrite(PIN_STATUS_LED, HIGH);
-    }
-
-    // If we received two hits and we have spoken Incendio
-    if (two_taps_cpy && esp_state_cpy) 
-    {
-        animate = true; 
-    }
-    // If we have spoken the aguamenti spell, turn off animation
-    if (esp_state_cpy == false && animate)
-    {
-        Serial.println("Turning off animation");
-        animate = false;
-        digitalWrite(PIN_STATUS_LED, LOW);
+        main_loop_prev_ms = millis();
+        
+        // Disable interrupts and copy control booleans
         noInterrupts();
-        // Reset global variable
-        two_taps = 0;
-        interrupts();
+        esp_state_cpy = esp_state;
+        two_taps_cpy = two_taps;
+        desired_animation_cpy = desired_animation;
+        interrupts(); // Reenable interrupts
+
+        // Now check boolean logic
+
+        // let user know we received two taps and awaiting for incendio spell
+        if (animate == false && two_taps_cpy && esp_state_cpy == false)
+        {
+            digitalWrite(PIN_STATUS_LED, HIGH);
+        }
+        // If we received two hits and we have spoken the activation spell (incendio)
+        if (two_taps_cpy && esp_state_cpy)
+        {
+            animate = true;
+            // Setup the bookeeping timer variables
+            animate_prev_ms = 0;
+        }
+        // If we have spoken the aguamenti spell, turn off the animation and reset variables
+        if (animate && esp_state_cpy == false)
+        {
+            animate = false;
+            animate_prev_ms = 0;
+            digitalWrite(PIN_STATUS_LED, LOW);
+            noInterrupts();
+            // Reset some global variables
+            two_tap_count = 0;
+            interrupts();
+            // Turn off all LEDs
+            for (int j = 0; j <=NUM_LED; j++)
+            {
+                strip.setPixelColor(j, 0,0,0);
+            }
+            strip.show();
+        }
+        
     }
-
-
-    // Override for debugging
-    //bool animate = true;
+    // If the control bools are set, start the animation
     if (animate)
     {
-        Serial.println(desired_animation_cpy);
+        // Check if the desired animation has changed
+        if (desired_animation_cpy != prev_desired_animation)
+        {
+            // If we detect a change, clear the time bookeeping variables
+            animate_prev_ms = 0;
+        }
+        // Select and run the desired animation when the time is appropiate
         switch (desired_animation_cpy)
         {
             case 0:
-                // Runs fire animation
-                animate_led();
+                if ((unsigned long)(millis() - animate_prev_ms) >= fire_interval)
+                {
+                    animate_prev_ms = millis();
+                    animate_led(); // Run fire animation
+                }
                 break;
             case 1:
-                rainbowCycle(10);
+                if ((unsigned long)(millis() - animate_prev_ms) >= rainbow_interval)
+                {
+                    animate_prev_ms = millis();
+                    rainbowCycle(); // Run Rainbow cycle animation
+                }
                 break;
             case 2:
-                theaterChaseRainbow(10);
+                if ((unsigned long)(millis() - animate_prev_ms) >= theater_interval)
+                {
+                    animate_prev_ms = millis();
+                    theaterChaseRainbow();
+                }
                 break;
             case 3:
-                rainbow(10);
+                if ((unsigned long)(millis() - animate_prev_ms) >= rainbow_interval)
+                {
+                    animate_prev_ms = millis();
+                    rainbow();
+                }
                 break;
         }
-    }
-    else
-    {
-        // Turn off all LEDs
-        for (int j = 0; j <=NUM_LED; j++)
-        {
-            strip.setPixelColor(j, 0,0,0);
-        }
-        strip.show();
-        // Turn off status LED
-        delay(10);
     }
 
 
