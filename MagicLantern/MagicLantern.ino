@@ -13,6 +13,7 @@
 //   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LED, PIN_LED_DATA, NEO_GRB + NEO_KHZ800);
 
+bool animate = true;
 
 // Animations:
 // 0: Fire
@@ -38,7 +39,7 @@ void sensor_tap_counter()
     // If we received two taps, update the control boolean for the main loop
     if (tap_count > 2)
     {
-        two_taps = true;
+        two_taps = true; // This boolean latches and does not get reset until augamenti is spoken
         // Reset tap counter
         tap_count = 0;
     }
@@ -47,6 +48,8 @@ void sensor_tap_counter()
     // also if twoTaps have already been received and the spell is spoken
     analogRead(PIN_MISC_ANIMATE_ENABLE); // discard
     int adc_val = analogRead(PIN_MISC_ANIMATE_ENABLE);
+    
+    // if we have already tapped twice and the animation is running
     if (two_taps && adc_val >= 200)
     {
         switch (tap_count)
@@ -74,7 +77,7 @@ volatile bool esp_state = false;
 void esp_state_change()
 {
     // Flip the control boolean for every detected state change
-    !esp_state;
+    esp_state = !esp_state;
 }
 
 
@@ -88,7 +91,7 @@ void setup()
     pinMode(INTERRUPT_PIN_SENSOR_INPUT, INPUT);
     pinMode(INTERRUPT_PIN_ESP_INPUT, INPUT);
     attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_SENSOR_INPUT), sensor_tap_counter, RISING);
-    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_ESP_INPUT), esp_state_change, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN_ESP_INPUT), esp_state_change, RISING);
 
     // initialize the Pot Sensor
     PotSensor.begin(SMOOTHED_AVERAGE, WINDOW_SIZE);
@@ -106,7 +109,7 @@ void loop()
     // Quickly copy the control booleans
     bool esp_state_cpy = esp_state;
     bool two_taps_cpy = two_taps;
-    bool desired_animation_cpy = desired_animation;
+    int desired_animation_cpy = desired_animation;
     interrupts(); // Reenable interrupts
 
     // Check boolean logic
@@ -125,9 +128,15 @@ void loop()
         animate = true; 
     }
     // If we have spoken the aguamenti spell, turn off animation
-    if (esp_state_cpy == false)
+    if (esp_state_cpy == false && animate)
     {
+        Serial.println("Turning off animation");
         animate = false;
+        digitalWrite(PIN_STATUS_LED, LOW);
+        noInterrupts();
+        // Reset global variable
+        two_taps = 0;
+        interrupts();
     }
 
 
@@ -135,6 +144,7 @@ void loop()
     //bool animate = true;
     if (animate)
     {
+        Serial.println(desired_animation_cpy);
         switch (desired_animation_cpy)
         {
             case 0:
@@ -148,7 +158,7 @@ void loop()
                 theaterChaseRainbow(10);
                 break;
             case 3:
-                Wheel(255);
+                rainbow(10);
                 break;
         }
     }
@@ -161,7 +171,7 @@ void loop()
         }
         strip.show();
         // Turn off status LED
-        digitalWrite(PIN_STATUS_LED, LOW);
+        delay(10);
     }
 
 

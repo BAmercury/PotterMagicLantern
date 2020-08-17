@@ -25,7 +25,7 @@ struct rgb_values hsl2RGB(struct hsl_val hsl_val);
 struct rgb_values hsl2RGB(struct hsl_values hsl_val)
 {
   //  Get Hue offset from the potentiometer then run through MA filter
-  int_hue = analogRead(PIN_POT);
+  analogRead(PIN_POT); // discard
   int_hue = analogRead(PIN_POT);
   // Add new value then read the smoothed result
   PotSensor.add(int_hue);

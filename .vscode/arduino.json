@@ -2,5 +2,5 @@
     "board": "arduino:avr:uno",
     "programmer": "AVR ISP",
     "sketch": "MagicLantern/MagicLantern.ino",
-    "port": "COM12"
+    "port": "COM3"
 }
