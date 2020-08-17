@@ -111,7 +111,7 @@ void animate_led()
     }
     strip.show();
     // Updates every 33 ms (Can use this to control framerate of animation)
-    //delay(33);
+    delay(33);
 
 
 

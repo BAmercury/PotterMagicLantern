@@ -14,7 +14,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LED, PIN_LED_DATA, NEO_GRB + NEO
 
 unsigned long animate_prev_ms = 0;
 unsigned long main_loop_prev_ms = 0;
-unsigned long fire_interval = 33; // milliseconds
+unsigned long fire_interval = 10000; // milliseconds
 unsigned long rainbow_interval = 10; // milliseconds
 unsigned long theater_interval = 50; // milliseconds
 unsigned long main_loop_interval = 10; // milliseconds
@@ -57,7 +57,7 @@ void sensor_tap_counter()
     // if we have already tapped twice assume the animation is running
     if (two_taps)
     {
-        if(++cycle_mode > 3) cycle_mode = 0; // Advance to next mode, wrap around after 3
+        if(++cycle_mode > 4) cycle_mode = 0; // Advance to next mode, wrap around after 3
         switch (cycle_mode)
         {
             case 0:
@@ -139,6 +139,8 @@ void loop()
         if (animate && esp_state_cpy == false)
         {
             animate = false;
+            esp_state_cpy = false;
+            two_taps_cpy = false;
             animate_prev_ms = 0;
             digitalWrite(PIN_STATUS_LED, LOW);
             noInterrupts();
@@ -157,12 +159,7 @@ void loop()
     // If the control bools are set, start the animation
     if (animate)
     {
-        // Check if the desired animation has changed
-        if (desired_animation_cpy != prev_desired_animation)
-        {
-            // If we detect a change, clear the time bookeeping variables
-            animate_prev_ms = 0;
-        }
+
         // Select and run the desired animation when the time is appropiate
         switch (desired_animation_cpy)
         {
