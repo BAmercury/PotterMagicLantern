@@ -1,6 +1,7 @@
 {
-    "board": "arduino:avr:uno",
-    "programmer": "AVR ISP",
+    "board": "MiniCore:avr:328",
+    "programmer": "Arduino as ISP",
     "sketch": "MagicLantern.ino",
-    "port": "COM3"
+    "port": "COM3",
+    "configuration": "bootloader=uart0,eeprom=keep,variant=modelP,BOD=2v7,LTO=Os,clock=8MHz_internal"
 }
