@@ -118,8 +118,8 @@ void loop()
         noInterrupts();
         esp_state_cpy = esp_state;
         two_taps_cpy = two_taps;
-        //desired_animation_cpy = desired_animation;
-        desired_animation_cpy = 0;
+        desired_animation_cpy = desired_animation;
+        //desired_animation_cpy = 0;
         interrupts(); // Reenable interrupts
 
         // Now check boolean logic
@@ -157,9 +157,8 @@ void loop()
         }
         
     }
-    //animate_led();
     // If the control bools are set, start the animation
-    if (true)
+    if (animate)
     {
 
         // Select and run the desired animation when the time is appropiate
