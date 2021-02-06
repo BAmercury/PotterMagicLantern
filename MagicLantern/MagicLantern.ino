@@ -14,7 +14,7 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LED, PIN_LED_DATA, NEO_GRB + NEO
 
 unsigned long animate_prev_ms = 0;
 unsigned long main_loop_prev_ms = 0;
-unsigned long fire_interval = 10000; // milliseconds
+unsigned long fire_interval = 33; // milliseconds
 unsigned long rainbow_interval = 10; // milliseconds
 unsigned long theater_interval = 50; // milliseconds
 unsigned long main_loop_interval = 10; // milliseconds
@@ -118,7 +118,8 @@ void loop()
         noInterrupts();
         esp_state_cpy = esp_state;
         two_taps_cpy = two_taps;
-        desired_animation_cpy = desired_animation;
+        //desired_animation_cpy = desired_animation;
+        desired_animation_cpy = 0;
         interrupts(); // Reenable interrupts
 
         // Now check boolean logic
@@ -156,8 +157,9 @@ void loop()
         }
         
     }
+    //animate_led();
     // If the control bools are set, start the animation
-    if (animate)
+    if (true)
     {
 
         // Select and run the desired animation when the time is appropiate
@@ -167,7 +169,7 @@ void loop()
                 if ((unsigned long)(millis() - animate_prev_ms) >= fire_interval)
                 {
                     animate_prev_ms = millis();
-                    animate_led(); // Run fire animation
+                    animate_led_interval(); // Run fire animation
                 }
                 break;
             case 1:
